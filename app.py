@@ -1,15 +1,14 @@
-
+import os
 from flask import Flask, request, jsonify, render_template, send_from_directory
-import torch
 from yolov5 import YOLOv5
 from PIL import Image
 import requests
-import os
 
-# Load the trained YOLOv5 model (ensure the path is correct)
-yolo_model = YOLOv5('best.pt')
-
+# Initialize Flask app
 app = Flask(__name__, template_folder='templates')
+
+# Load environment variables (like your API keys)
+API_KEY = os.getenv('AIzaSyCPJ44pc4wQGLGBHtCNKwe4sX8mQpojHVU')  # Store your API key as an environment variable
 
 # Path to save uploaded images
 UPLOAD_FOLDER = './uploads'
@@ -18,10 +17,20 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Tell Flask to serve files from the 'uploads' directory
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Global variable for the YOLOv5 model to avoid reloading on every request
+yolo_model = None
+
+def load_model():
+    global yolo_model
+    if yolo_model is None:
+        yolo_model = YOLOv5('best.pt')  # Path to your trained model
+    return yolo_model
+
 # Function to predict the class of an uploaded image
 def predict_image(image_path):
     img = Image.open(image_path)
-    results = yolo_model.predict(img)
+    model = load_model()  # Ensure the model is loaded
+    results = model.predict(img)
     preds = results.pandas().xywh[0]
     if preds.empty:
         return None
@@ -29,8 +38,7 @@ def predict_image(image_path):
         return preds['name'][0]
 
 def search_youtube(query):
-    api_key = 'AIzaSyCPJ44pc4wQGLGBHtCNKwe4sX8mQpojHVU'  # Replace with your actual YouTube API key
-    url = f'https://www.googleapis.com/youtube/v3/search?q={query}+tutorial&part=snippet&maxResults=3&key={api_key}'
+    url = f'https://www.googleapis.com/youtube/v3/search?q={query}+tutorial&part=snippet&maxResults=3&key={API_KEY}'
     response = requests.get(url)
     
     if response.status_code != 200:
@@ -47,8 +55,7 @@ def search_youtube(query):
     return video_links
 
 def search_recipe_videos(query):
-    api_key = 'AIzaSyCPJ44pc4wQGLGBHtCNKwe4sX8mQpojHVU'  # Replace with your actual YouTube API key
-    url = f'https://www.googleapis.com/youtube/v3/search?q={query}+recipe&part=snippet&maxResults=3&key={api_key}'
+    url = f'https://www.googleapis.com/youtube/v3/search?q={query}+recipe&part=snippet&maxResults=3&key={API_KEY}'
     response = requests.get(url)
     
     if response.status_code != 200:
@@ -68,7 +75,6 @@ def search_recipe_videos(query):
 def index():
     return render_template('index.html')
 
-
 @app.route('/app')
 def app_page():
     return render_template('app.html')  # Flask will render the app.html from the templates folder
@@ -80,9 +86,6 @@ def blog():
 @app.route('/contact')
 def contact():
     return render_template('page-contact.html')
-
-
-
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
