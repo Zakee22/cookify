@@ -1,0 +1,358 @@
+<!doctype html>
+<!--[if IE 9]> <html class="no-js ie9 fixed-layout" lang="en"> <![endif]-->
+<!--[if gt IE 9]><!--> <html class="no-js " lang="en"> <!--<![endif]-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classify Image</title>
+    <!-- Basic -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Mobile Meta -->
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Site Meta -->
+    <title>Edulogy</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+<!-- Site Icons -->
+<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon" />
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,500,700,900" rel="stylesheet"> 
+<link href="https://fonts.googleapis.com/css?family=Droid+Serif:400,400i,700,700i" rel="stylesheet"> 
+
+<!-- Custom & Default Styles -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/carousel.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/animate.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<!--[if lt IE 9]>
+    <script src="{{ url_for('static', filename='js/vendor/html5shiv.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/respond.min.js') }}"></script>
+<![endif]-->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        #uploadForm {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            margin: 0;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 80%;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #imagePreview {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #uploadedImage {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+
+        #results {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .video-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-slider {
+            display: flex;
+            transition: transform 0.3s ease;
+        }
+
+        iframe {
+            border: none;
+            max-width: 600px;
+            height: 315px;
+            margin: 10px;
+            width: 100%;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #4CAF50;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
+
+        .slider-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 10;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- LOADER -->
+    <div id="preloader">
+        <img class="preloader" src="{{ url_for('static', filename='images/loader.gif') }}" alt="">
+    </div><!-- end loader -->
+    <!-- END LOADER -->
+
+    <div id="wrapper">
+        <!-- BEGIN # MODAL LOGIN -->
+        <div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <!-- Begin # DIV Form -->
+                    <div id="div-forms">
+                        <form id="login-form">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span class="flaticon-add" aria-hidden="true"></span>
+                            </button>
+                            <div class="modal-body">
+                                <input class="form-control" type="text" placeholder="What you are looking for?" required>
+                            </div>
+                        </form><!-- End # Login Form -->
+                    </div><!-- End # DIV Form -->
+                </div>
+            </div>
+        </div>
+        <!-- END # MODAL LOGIN -->
+
+        <header class="header header-normal">
+            <div class="topbar clearfix">
+                <div class="container">
+                    <div class="row-fluid">
+                        <div class="col-md-6 col-sm-6 text-left">
+                            <p>
+                                <strong><i class="fa fa-phone"></i></strong> +90 543 123 45 67 &nbsp;&nbsp;
+                                <strong><i class="fa fa-envelope"></i></strong> <a href="mailto:#">info@yoursite.com</a>
+                            </p>
+                        </div><!-- end left -->
+                        <div class="col-md-6 col-sm-6 hidden-xs text-right">
+                            <div class="social">
+                                <a class="facebook" href="#" data-tooltip="tooltip" data-placement="bottom" title="Facebook"><i class="fa fa-facebook"></i></a>              
+                                <a class="twitter" href="#" data-tooltip="tooltip" data-placement="bottom" title="Twitter"><i class="fa fa-twitter"></i></a>
+                                <a class="google" href="#" data-tooltip="tooltip" data-placement="bottom" title="Google Plus"><i class="fa fa-google-plus"></i></a>
+                                <a class="linkedin" href="#" data-tooltip="tooltip" data-placement="bottom" title="Linkedin"><i class="fa fa-linkedin"></i></a>
+                                <a class="pinterest" href="#" data-tooltip="tooltip" data-placement="bottom" title="Pinterest"><i class="fa fa-pinterest"></i></a>
+                            </div><!-- end social -->
+                        </div><!-- end left -->
+                    </div><!-- end row -->
+                </div><!-- end container -->
+            </div><!-- end topbar -->
+
+            <div class="container">
+                <nav class="navbar navbar-default yamm">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <div class="logo-normal">
+                            <a class="navbar-brand" href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
+
+                        </div>
+                    </div>
+
+                    <div id="navbar" class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href="{{ url_for('index') }}">Home</a></li>
+
+                            
+                            
+                            <li class="dropdown hassubmenu">
+                                <a href="{{ url_for('blog') }}" class="dropdown-toggle">Blog</a>
+                            </li>
+                            <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                            
+                            <li class="iconitem"><a href="#" data-toggle="modal" data-target="#login-modal"><i class="fa fa-search"></i></a></li>
+                           
+                        </ul>
+                    </div>
+                </nav><!-- end navbar -->
+            </div><!-- end container -->
+        </header>
+    </div>
+    <div class="container">
+        <h1>Upload an Image for Tutorial Video</h1>
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="image" accept="image/*" required>
+            <button type="submit">Upload</button>
+        </form>
+
+        <div id="imagePreview">
+            <h2>Uploaded Image:</h2>
+            <img id="uploadedImage" src="" alt="Uploaded Image">
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">Processing Image...</div>
+
+        <div id="results">
+            <h2>Product Name: <span id="class_name"></span></h2>
+
+            <h3>YouTube Tutorial Video:</h3>
+            <div id="youtube_tutorial_video"></div>
+
+            <h3>YouTube Recipe Videos:</h3>
+            <div id="recipe_video_links" class="video-container">
+                <button class="slider-button prev">&#10094;</button>
+                <div id="recipeVideos" class="video-slider"></div>
+                <button class="slider-button next">&#10095;</button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+</div>
+
+    <script>
+        const form = document.querySelector('#uploadForm');
+        form.onsubmit = async function (event) {
+            event.preventDefault();
+            const formData = new FormData(form);
+
+            // Show loading message
+            document.getElementById('loading').style.display = 'block';
+
+            let response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            let data = await response.json();
+
+            if (response.ok) {
+                // Hide loading message
+                document.getElementById('loading').style.display = 'none';
+
+                // Image Preview
+                document.getElementById('uploadedImage').src = data.image_url;
+                document.getElementById('imagePreview').style.display = 'block';
+
+                // Class Name
+                document.getElementById('class_name').innerText = data.class_name;
+
+                // YouTube Tutorial Video Embed
+                const youtubeTutorialDiv = document.getElementById('youtube_tutorial_video');
+                if (data.youtube_tutorial_video !== "No tutorial video found") {
+                    const videoEmbed = `<iframe src="https://www.youtube.com/embed/${data.youtube_tutorial_video.split('v=')[1]}" frameborder="0" allowfullscreen></iframe>`;
+                    youtubeTutorialDiv.innerHTML = videoEmbed;
+                } else {
+                    youtubeTutorialDiv.innerHTML = "<p>No tutorial video found</p>";
+                }
+
+                // Recipe Videos Embed (Slider)
+                const recipeVideosDiv = document.getElementById('recipeVideos');
+                if (data.recipe_video_links.length > 0) {
+                    recipeVideosDiv.innerHTML = data.recipe_video_links.map(link =>
+                        `<iframe src="https://www.youtube.com/embed/${link.split('v=')[1]}" frameborder="0" allowfullscreen></iframe>`
+                    ).join('');
+                } else {
+                    recipeVideosDiv.innerHTML = "<p>No recipe videos found</p>";
+                }
+
+                document.getElementById('results').style.display = 'block';
+
+                // Initialize Slider Controls
+                let slideIndex = 0;
+                const videoSlider = document.querySelector('.video-slider');
+                const totalSlides = videoSlider.children.length;
+
+                document.querySelector('.prev').onclick = function () {
+                    slideIndex = (slideIndex - 1 + totalSlides) % totalSlides;
+                    updateSlider();
+                };
+
+                document.querySelector('.next').onclick = function () {
+                    slideIndex = (slideIndex + 1) % totalSlides;
+                    updateSlider();
+                };
+
+                function updateSlider() {
+                    videoSlider.style.transform = `translateX(-${slideIndex * 300}px)`;
+                }
+            } else {
+                // Hide loading message and display error
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerText = data.error;
+            }
+        }
+    </script>
+    <!-- jQuery Files -->
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animate.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
+</body>
+
+</html>
